@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>你是？</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(180deg, #87CEEB 0%, #98D8C8 50%, #90EE90 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 云朵装饰 */
+        .cloud {
+            position: fixed;
+            background: white;
+            border-radius: 100px;
+            opacity: 0.8;
+            animation: floatCloud 30s infinite linear;
+        }
+
+        @keyframes floatCloud {
+            from { transform: translateX(-200px); }
+            to { transform: translateX(100vw); }
+        }
+
+        .cloud1 { top: 10%; width: 100px; height: 40px; animation-delay: 0s; }
+        .cloud2 { top: 30%; width: 150px; height: 50px; animation-delay: 10s; }
+        .cloud3 { top: 60%; width: 120px; height: 45px; animation-delay: 20s; }
+
+        .container {
+            background: #FFFEF0;
+            border: 4px solid #8B4513;
+            border-radius: 30px;
+            padding: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        /* 木纹边框效果 */
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: repeating-linear-gradient(
+                90deg,
+                #D2691E 0px,
+                #CD853F 10px,
+                #D2691E 20px
+            );
+            border-radius: 35px;
+            z-index: -1;
+        }
+
+        h1 {
+            font-size: 4em;
+            color: #FF6347;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 0px #FFD700;
+            font-weight: bold;
+        }
+
+        .leaf-decoration {
+            text-align: center;
+            font-size: 2em;
+            margin: 15px 0;
+        }
+
+        #video, #canvas {
+            width: 100%;
+            max-width: 500px;
+            border: 5px solid #8B4513;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin: 20px auto;
+            display: block;
+            background: #E8F5E9;
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        button {
+            background: linear-gradient(180deg, #FFE082 0%, #FFD54F 100%);
+            color: #8B4513;
+            border: 3px solid #8B4513;
+            padding: 15px 40px;
+            font-size: 1.3em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 0 #D4A017;
+            margin: 10px;
+            font-family: 'Comic Sans MS', sans-serif;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 0 #D4A017;
+        }
+
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #D4A017;
+        }
+
+        #result {
+            margin-top: 30px;
+            padding: 30px;
+            background: linear-gradient(180deg, #FFF9C4 0%, #FFF59D 100%);
+            border: 4px solid #FFD54F;
+            border-radius: 25px;
+            display: none;
+            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .comparison-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 25px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .face-box, .animal-box {
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .face-image, .animal-image {
+            width: 200px;
+            height: 200px;
+            border: 5px solid #8B4513;
+            border-radius: 20px;
+            object-fit: cover;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            background: white;
+        }
+
+        .vs-text {
+            font-size: 3em;
+            color: #FF6347;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 #FFD700;
+            align-self: center;
+        }
+
+        .label {
+            font-size: 1.3em;
+            color: #8B4513;
+            font-weight: bold;
+            margin-top: 10px;
+            background: #FFE082;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            border: 2px solid #8B4513;
+        }
+
+        .animal-name {
+            font-size: 2.2em;
+            color: #FF6347;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+            text-shadow: 2px 2px 0 #FFD700;
+        }
+
+        .similarity {
+            font-size: 1.5em;
+            color: #4CAF50;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+            background: white;
+            padding: 10px;
+            border-radius: 15px;
+            border: 3px solid #4CAF50;
+        }
+
+        .animal-description {
+            font-size: 1.1em;
+            color: #5D4037;
+            line-height: 1.8;
+            text-align: center;
+            margin: 20px 0;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #FFD54F;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading-text {
+            font-size: 1.3em;
+            color: #8B4513;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .spinner-leaf {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            font-size: 3em;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .retry-button {
+            background: linear-gradient(180deg, #81C784 0%, #66BB6A 100%);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 云朵装饰 -->
+    <div class="cloud cloud1"></div>
+    <div class="cloud cloud2"></div>
+    <div class="cloud cloud3"></div>
+
+    <div class="container">
+        <h1>你是？</h1>
+        <div class="leaf-decoration">🌿 🍂 🌸 🍄 🌿</div>
+        
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+        
+        <div class="button-container">
+            <button id="startBtn">📷 开启相机</button>
+            <button id="captureBtn" style="display:none;">✨ 开始分析</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner">
+                <div class="spinner-leaf">🍃</div>
+            </div>
+            <p class="loading-text">正在分析中...</p>
+        </div>
+
+        <div id="result">
+            <div class="animal-name" id="animalName"></div>
+            
+            <div class="comparison-container">
+                <div class="face-box">
+                    <canvas class="face-image" id="userFace"></canvas>
+                    <div class="label">👤 你</div>
+                </div>
+                
+                <div class="vs-text">VS</div>
+                
+                <div class="animal-box">
+                    <img class="animal-image" id="animalPhoto" alt="动物照片">
+                    <div class="label" id="animalLabel">🐾 ???</div>
+                </div>
+            </div>
+
+            <div class="similarity" id="similarity"></div>
+            <div class="animal-description" id="animalDescription"></div>
+            
+            <div class="button-container">
+                <button class="retry-button" id="retryBtn">🔄 再测一次</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const startBtn = document.getElementById('startBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        const retryBtn = document.getElementById('retryBtn');
+        let capturedImageData = null;
+
+        const animals = [
+            {
+                name: '🦊 狐狸',
+                emoji: '🦊',
+                image: 'https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=400',
+                description: '机智聪明的森林智者！眼神灵动，总能找到解决问题的妙招~'
+            },
+            {
+                name: '🐼 熊猫',
+                emoji: '🐼',
+                image: 'https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=400',
+                description: '圆滚滚的可爱担当！每天最重要的事就是吃竹子和打滚~'
+            },
+            {
+                name: '🐷 小猪',
+                emoji: '🐷',
+                image: 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=400',
+                description: '乐天派的美食家！对生活充满热情，最喜欢和朋友们分享美食~'
+            },
+            {
+                name: '🐗 野猪',
+                emoji: '🐗',
+                image: 'https://images.unsplash.com/photo-1598377452315-f8fe70c4c6e2?w=400',
+                description: '森林里的冒险家！勇敢冲动，做事风风火火，是天生的行动派！'
+            },
+            {
+                name: '🦝 浣熊',
+                emoji: '🦝',
+                image: 'https://images.unsplash.com/photo-1497752531616-c3afd9760a11?w=400',
+                description: '精明能干的商业奇才！做生意很有一套，但内心其实很温柔~'
+            },
+            {
+                name: '🐨 考拉',
+                emoji: '🐨',
+                image: 'https://images.unsplash.com/photo-1549317336-206569e8475c?w=400',
+                description: '佛系生活的代表！慢悠悠的节奏，每天睡觉就很幸福啦！'
+            },
+            {
+                name: '🐸 青蛙',
+                emoji: '🐸',
+                image: 'https://images.unsplash.com/photo-1564694972796-f14d00c34d90?w=400',
+                description: '池塘边的歌唱家！性格开朗爱唱歌，雨天心情特别好呱~'
+            },
+            {
+                name: '🦆 鸭子',
+                emoji: '🦆',
+                image: 'https://images.unsplash.com/photo-1522926193341-e9ffd686c60f?w=400',
+                description: '河边的悠闲派！喜欢游泳晒太阳，性格温和好相处~'
+            },
+            {
+                name: '🐔 小鸡',
+                emoji: '🐔',
+                image: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400',
+                description: '早起的勤劳鸡！每天精力充沛，是时间管理大师~'
+            },
+            {
+                name: '🦉 猫头鹰',
+                emoji: '🦉',
+                image: 'https://images.unsplash.com/photo-1596370743446-6a7ef43a36f9?w=400',
+                description: '夜晚的智慧之眼！博学多才，喜欢深夜思考呜~'
+            },
+            {
+                name: '🐱 猫咪',
+                emoji: '🐱',
+                image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400',
+                description: '高冷系萌宠！看起来傲娇，其实超级黏人喵~'
+            },
+            {
+                name: '🐶 小狗',
+                emoji: '🐶',
+                image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400',
+                description: '忠诚的好伙伴！热情开朗，对朋友超级真诚汪~'
+            },
+            {
+                name: '🐰 兔子',
+                emoji: '🐰',
+                image: 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=400',
+                description: '软萌蹦蹦跳！温柔可爱，最喜欢吃胡萝卜了~'
+            },
+            {
+                name: '🦁 狮子',
+                emoji: '🦁',
+                image: 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=400',
+                description: '森林之王的气场！天生领导者，自信满满！'
+            },
+            {
+                name: '🐯 老虎',
+                emoji: '🐯',
+                image: 'https://images.unsplash.com/photo-1551969014-7d2c4cddf0b6?w=400',
+                description: '威风凛凛的大猫！看起来凶猛，其实性格直爽吼~'
+            },
+            {
+                name: '🐻 小熊',
+                emoji: '🐻',
+                image: 'https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=400',
+                description: '温暖的拥抱担当！力气大心眼好，是治愈系代表~'
+            },
+            {
+                name: '🐮 奶牛',
+                emoji: '🐮',
+                image: 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=400',
+                description: '牧场的温柔巨人！性格憨厚，做事踏实哞~'
+            },
+            {
+                name: '🐴 小马',
+                emoji: '🐴',
+                image: 'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=400',
+                description: '奔跑的自由之魂！热爱运动，精力旺盛！'
+            },
+            {
+                name: '🦌 小鹿',
+                emoji: '🦌',
+                image: 'https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=400',
+                description: '森林里的小精灵！温柔优雅，有点害羞呢~'
+            },
+            {
+                name: '🦒 长颈鹿',
+                emoji: '🦒',
+                image: 'https://images.unsplash.com/photo-1547721064-da6cfb341d50?w=400',
+                description: '高处看世界！视野开阔，眼光长远~'
+            },
+            {
+                name: '🦘 袋鼠',
+                emoji: '🦘',
+                image: 'https://images.unsplash.com/photo-1514873019433-a21043cdcce6?w=400',
+                description: '蹦蹦跳的活力王！精力充沛，总是活蹦乱跳！'
+            },
+            {
+                name: '🐘 大象',
+                emoji: '🐘',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '记忆力超群的智者！从不忘记朋友的生日~'
+            },
+            {
+                name: '🦏 犀牛',
+                emoji: '🦏',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '外表刚硬内心软！看起来不好惹，其实超级温柔~'
+            },
+            {
+                name: '🦛 河马',
+                emoji: '🦛',
+                image: 'https://images.unsplash.com/photo-1585009495481-cde0b6eb8350?w=400',
+                description: '水中的憨憨！圆滚滚超可爱，游泳技术一流~'
+            },
+            {
+                name: '🐊 鳄鱼',
+                emoji: '🐊',
+                image: 'https://images.unsplash.com/photo-1549057308-7a5796015e8d?w=400',
+                description: '河边的冷静派！平时很佛系，但该出手时绝不手软！'
+            },
+            {
+                name: '🦈 大白鲨',
+                emoji: '🦈',
+                image: 'https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=400',
+                description: '海洋霸主降临！气场强大，目标明确！'
+            },
+            {
+                name: '🐬 海豚',
+                emoji: '🐬',
+                image: 'https://images.unsplash.com/photo-1607153333879-c174d265f1d2?w=400',
+                description: '海中的聪明宝宝！智商超高，最喜欢表演和玩耍~'
+            },
+            {
+                name: '🐋 鲸鱼',
+                emoji: '🐋',
+                image: 'https://images.unsplash.com/photo-1568430462989-44163eb1752f?w=400',
+                description: '温柔的巨人！虽然体型庞大，但心思细腻~'
+            },
+            {
+                name: '🦭 海豹',
+                emoji: '🦭',
+                image: 'https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=400',
+                description: '冰上的萌物！圆滚滚的身体，呆萌的表情！'
+            },
+            {
+                name: '🦦 水獭',
+                emoji: '🦦',
+                image: 'https://images.unsplash.com/photo-1604069933659-31a2803c1db4?w=400',
+                description: '水中的玩耍大师！爱玩爱闹，社交达人~'
+            },
+            {
+                name: '🦫 河狸',
+                emoji: '🦫',
+                image: 'https://images.unsplash.com/photo-1618417993315-0c2499c1117b?w=400',
+                description: '建筑大师！勤劳能干，做事有条不紊~'
+            },
+            {
+                name: '🐧 企鹅',
+                emoji: '🐧',
+                image: 'https://images.unsplash.com/photo-1551986782-d0169b3f8fa7?w=400',
+                description: '摇摇摆摆超可爱！虽然走路慢，但游泳超快！'
+            },
+            {
+                name: '🦅 老鹰',
+                emoji: '🦅',
+                image: 'https://images.unsplash.com/photo-1611689342806-0863700ce1e4?w=400',
+                description: '天空的王者！眼神锐利，洞察力强~'
+            },
+            {
+                name: '🦜 鹦鹉',
+                emoji: '🦜',
+                image: 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=400',
+                description: '色彩缤纷的话痨！口才一流，学习能力强~'
+            },
+            {
+                name: '🦩 火烈鸟',
+                emoji: '🦩',
+                image: 'https://images.unsplash.com/photo-1553481187-be93c21490a9?w=400',
+                description: '优雅的粉色系！气质出众，走到哪里都是焦点~'
+            },
+            {
+                name: '🦚 孔雀',
+                emoji: '🦚',
+                image: 'https://images.unsplash.com/photo-1609429019995-8c40f49535a5?w=400',
+                description: '华丽的明星！自信耀眼，艺术气息浓厚~'
+            },
+            {
+                name: '🦢 天鹅',
+                emoji: '🦢',
+                image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400',
+                description: '湖面上的优雅女王！高贵温柔，动作轻盈~'
+            },
+            {
+                name: '🕊️ 鸽子',
+                emoji: '🕊️',
+                image: 'https://images.unsplash.com/photo-1464154818243-dd2e41a6c9b7?w=400',
+                description: '和平使者！性格温和，喜欢调解矛盾~'
+            },
+            {
+                name: '🦃 火鸡',
+                emoji: '🦃',
+                image: 'https://images.unsplash.com/photo-1539818362252-99c0ce8b0a29?w=400',
+                description: '感恩节的主角！热情好客，喜欢聚会~'
+            },
+            {
+                name: '🐓 公鸡',
+                emoji: '🐓',
+                image: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400',
+                description: '清晨的闹钟！准时守信，精力旺盛~'
+            },
+            {
+                name: '🐍 蛇',
+                emoji: '🐍',
+                image: 'https://images.unsplash.com/photo-1531386450783-2d3a19828dc9?w=400',
+                description: '神秘的智者！行动优雅，思维敏捷嘶~'
+            },
+            {
+                name: '🦎 蜥蜴',
+                emoji: '🦎',
+                image: 'https://images.unsplash.com/photo-1563434156019-622984fd3a18?w=400',
+                description: '变色大师！适应力超强，喜欢晒太阳~'
+            },
+            {
+                name: '🐢 乌龟',
+                emoji: '🐢',
+                image: 'https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=400',
+                description: '慢就是快！稳重可靠，有耐心~'
+            },
+            {
+                name: '🦕 恐龙',
+                emoji: '🦕',
+                image: 'https://images.unsplash.com/photo-1549375463-8288a0d5c825?w=400',
+                description: '远古的巨人！温柔善良，喜欢吃植物~'
+            },
+            {
+                name: '🦖 霸王龙',
+                emoji: '🦖',
+                image: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400',
+                description: '霸气外露！虽然手短，但气场强大吼~'
+            },
+            {
+                name: '🐙 章鱼',
+                emoji: '🐙',
+                image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400',
+                description: '多任务处理大师！八只手同时工作，聪明灵活~'
+            },
+            {
+                name: '🦑 鱿鱼',
+                emoji: '🦑',
+                image: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=400',
+                description: '深海的神秘客！喜欢独处，思考深邃~'
+            },
+            {
+                name: '🦞 龙虾',
+                emoji: '🦞',
+                image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400',
+                description: '海底的贵族！外壳坚硬，但肉质鲜美~'
+            },
+            {
+                name: '🦀 螃蟹',
+                emoji: '🦀',
+                image: 'https://images.unsplash.com/photo-1565358107516-2bd15d6e8924?w=400',
+                description: '横行霸道！两只大钳子超威风，走路姿势独特~'
+            },
+            {
+                name: '🐡 河豚',
+                emoji: '🐡',
+                image: 'https://images.unsplash.com/photo-1535591273668-578e31182c4f?w=400',
+                description: '圆嘟嘟的萌物！生气时会炸毛，反差萌满分！'
+            },
+            {
+                name: '🐠 热带鱼',
+                emoji: '🐠',
+                image: 'https://images.unsplash.com/photo-1520985244272-9d0b8067a4ff?w=400',
+                description: '色彩缤纷的小精灵！乐观积极，灵活机敏~'
+            },
+            {
+                name: '🐟 金鱼',
+                emoji: '🐟',
+                image: 'https://images.unsplash.com/photo-1535591273668-578e31182c4f?w=400',
+                description: '记忆只有7秒！但每一秒都活得很开心~'
+            },
+            {
+                name: '🦈 鲨鱼',
+                emoji: '🦈',
+                image: 'https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=400',
+                description: '海洋猎手！永不停歇，目标坚定~'
+            },
+            {
+                name: '🐳 抹香鲸',
+                emoji: '🐳',
+                image: 'https://images.unsplash.com/photo-1568430462989-44163eb1752f?w=400',
+                description: '深潜高手！能潜到海底3000米，是潜水冠军~'
+            },
+            {
+                name: '🦐 小虾',
+                emoji: '🦐',
+                image: 'https://images.unsplash.com/photo-1565358107516-2bd15d6e8924?w=400',
+                description: '弹跳小能手！虽然个子小，但身手敏捷~'
+            },
+            {
+                name: '🦗 蟋蟀',
+                emoji: '🦗',
+                image: 'https://images.unsplash.com/photo-1568526381923-caf3fd520382?w=400',
+                description: '夜晚的音乐家！叫声清脆，是天生的演奏家~'
+            },
+            {
+                name: '🦟 蚊子',
+                emoji: '🦟',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '夏夜的恶魔！体型小但存在感超强，让人又爱又恨~'
+            },
+            {
+                name: '🪳 蟑螂',
+                emoji: '🪳',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '生存能力MAX！适应力极强，是不死小强本强~'
+            },
+            {
+                name: '🦋 蝴蝶',
+                emoji: '🦋',
+                image: 'https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?w=400',
+                description: '翩翩起舞的精灵！优雅美丽，是大自然的艺术品~'
+            },
+            {
+                name: '🐛 毛毛虫',
+                emoji: '🐛',
+                image: 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=400',
+                description: '未来的蝴蝶！现在虽然不起眼，但潜力无限~'
+            },
+            {
+                name: '🐝 蜜蜂',
+                emoji: '🐝',
+                image: 'https://images.unsplash.com/photo-1563299796-17596ed6b017?w=400',
+                description: '勤劳的采蜜工！团队合作精神满分，嗡嗡嗡~'
+            },
+            {
+                name: '🐞 瓢虫',
+                emoji: '🐞',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '可爱的小圆点！红黑配色超时尚，是昆虫界的时尚icon~'
+            },
+            {
+                name: '🦂 蝎子',
+                emoji: '🦂',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '沙漠杀手！尾巴有毒，但其实很害羞~'
+            },
+            {
+                name: '🕷️ 蜘蛛',
+                emoji: '🕷️',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '织网大师！耐心十足，是天生的建筑师~'
+            },
+            {
+                name: '🦥 树懒',
+                emoji: '🦥',
+                image: 'https://images.unsplash.com/photo-1551854838-4e315880e37a?w=400',
+                description: '慢生活倡导者！每天移动不超过40米，超级佛系~'
+            },
+            {
+                name: '🦔 刺猬',
+                emoji: '🦔',
+                image: 'https://images.unsplash.com/photo-1584717223641-6b0f0c86a05b?w=400',
+                description: '外冷内热的代表！浑身是刺但内心温柔~'
+            },
+            {
+                name: '🦇 蝙蝠',
+                emoji: '🦇',
+                image: 'https://images.unsplash.com/photo-1604762512326-1352e4f14195?w=400',
+                description: '夜行侠！倒挂金钩睡觉，超声波导航~'
+            },
+            {
+                name: '🦡 獾',
+                emoji: '🦡',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '挖洞高手！脾气有点暴躁，但很护短~'
+            },
+            {
+                name: '🦨 臭鼬',
+                emoji: '🦨',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '生化武器专家！防御技能点满，谁都不敢惹~'
+            },
+            {
+                name: '🦘 小袋鼠',
+                emoji: '🦘',
+                image: 'https://images.unsplash.com/photo-1514873019433-a21043cdcce6?w=400',
+                description: '妈妈的小宝贝！喜欢躲在口袋里，超级可爱~'
+            },
+            {
+                name: '🦙 羊驼',
+                emoji: '🦙',
+                image: 'https://images.unsplash.com/photo-1551522435-a13afa10f103?w=400',
+                description: '网红草泥马！自带喜感，表情包制造机~'
+            },
+            {
+                name: '🐪 骆驼',
+                emoji: '🐪',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '沙漠之舟！能储存水分，是生存专家~'
+            },
+            {
+                name: '🦬 野牛',
+                emoji: '🦬',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '草原霸主！力大无穷，成群结队超壮观~'
+            },
+            {
+                name: '🐃 水牛',
+                emoji: '🐃',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '田间好帮手！勤勤恳恳，任劳任怨~'
+            },
+            {
+                name: '🐂 公牛',
+                emoji: '🐂',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '力量担当！脾气有点暴躁，但很有责任心~'
+            },
+            {
+                name: '🐏 绵羊',
+                emoji: '🐏',
+                image: 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=400',
+                description: '温顺可爱！毛茸茸超治愈，是大家的好朋友~'
+            },
+            {
+                name: '🐑 小羊',
+                emoji: '🐑',
+                image: 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=400',
+                description: '软萌小可爱！叫声咩咩咩，萌化你的心~'
+            },
+            {
+                name: '🐐 山羊',
+                emoji: '🐐',
+                image: 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=400',
+                description: '攀岩高手！什么地方都敢爬，胆子超大~'
+            },
+            {
+                name: '🦌 梅花鹿',
+                emoji: '🦌',
+                image: 'https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=400',
+                description: '斑点美人！温柔优雅，奔跑起来超级美~'
+            },
+            {
+                name: '🦌 麋鹿',
+                emoji: '🦌',
+                image: 'https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=400',
+                description: '圣诞老人的座驾！鹿角超酷，是冬天的使者~'
+            },
+            {
+                name: '🐕 柴犬',
+                emoji: '🐕',
+                image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400',
+                description: '表情包之王！笑起来超治愈，是网红狗狗~'
+            },
+            {
+                name: '🦮 导盲犬',
+                emoji: '🦮',
+                image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400',
+                description: '天使般的存在！聪明忠诚，是最棒的工作犬~'
+            },
+            {
+                name: '🐕‍🦺 警犬',
+                emoji: '🐕‍🦺',
+                image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400',
+                description: '英勇的战士！嗅觉灵敏，是人类的好伙伴~'
+            },
+            {
+                name: '🐩 贵宾犬',
+                emoji: '🐩',
+                image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400',
+                description: '优雅的贵族！毛发卷卷的，超级时尚~'
+            },
+            {
+                name: '🐈 家猫',
+                emoji: '🐈',
+                image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400',
+                description: '傲娇小公主！喜欢晒太阳和被铲屎的~'
+            },
+            {
+                name: '🐈‍⬛ 黑猫',
+                emoji: '🐈‍⬛',
+                image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400',
+                description: '神秘的使者！全身黑色超酷，其实带来好运~'
+            },
+            {
+                name: '🦁 母狮',
+                emoji: '🦁',
+                image: 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=400',
+                description: '狩猎女王！才是真正的猎手，超级飒~'
+            },
+            {
+                name: '🐅 白虎',
+                emoji: '🐅',
+                image: 'https://images.unsplash.com/photo-1551969014-7d2c4cddf0b6?w=400',
+                description: '稀有的美人！白色皮毛超梦幻，是虎中贵族~'
+            },
+            {
+                name: '🐆 美洲豹',
+                emoji: '🐆',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '丛林猎手！速度快力量大，是完美的捕食者~'
+            },
+            {
+                name: '🦌 驯鹿',
+                emoji: '🦌',
+                image: 'https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=400',
+                description: '北极的精灵！能在雪地里奔跑，超级耐寒~'
+            },
+            {
+                name: '🦓 斑马',
+                emoji: '🦓',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '行走的条码！黑白条纹是天然的保护色~'
+            },
+            {
+                name: '🦍 大猩猩',
+                emoji: '🦍',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '森林之王！力大无穷但性格温和，是智慧的象征~'
+            },
+            {
+                name: '🦧 猩猩',
+                emoji: '🦧',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '聪明的灵长类！会使用工具，智商很高~'
+            },
+            {
+                name: '🐒 猴子',
+                emoji: '🐒',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '机灵鬼！爱吃香蕉，上蹿下跳超活泼~'
+            },
+            {
+                name: '🦍 金刚',
+                emoji: '🦍',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '温柔的巨人！虽然体型大，但保护欲很强~'
+            },
+            {
+                name: '🐵 小猴',
+                emoji: '🐵',
+                image: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400',
+                description: '淘气包！喜欢恶作剧，是开心果~'
+            }
+        ];
+
+        // 开启摄像头
+        startBtn.addEventListener('click', async function() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user' } 
+                });
+                video.srcObject = stream;
+                startBtn.style.display = 'none';
+                captureBtn.style.display = 'inline-block';
+            } catch (err) {
+                alert('无法访问摄像头，请确保已授权摄像头权限！');
+                console.error(err);
+            }
+        });
+
+        // 捕获并分析
+        captureBtn.addEventListener('click', function() {
+            // 设置canvas尺寸
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // 捕获视频帧
+            ctx.drawImage(video, 0, 0);
+            
+            // 保存捕获的图像数据
+            capturedImageData = canvas.toDataURL('image/png');
+            
+            // 显示加载动画
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+            
+            // 模拟AI分析
+            setTimeout(() => {
+                analyzeFeatures();
+            }, 2000);
+        });
+
+        // 分析特征
+        function analyzeFeatures() {
+            // 随机选择一个动物
+            const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
+            const similarity = Math.floor(Math.random() * 20) + 80; // 80-99%的相似度
+            
+            displayResult(randomAnimal, similarity);
+        }
+
+        // 显示结果
+        function displayResult(animal, similarity) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('result').style.display = 'block';
+            
+            // 显示动物名称 - 提取动物名称（去掉emoji）
+            const animalNameOnly = animal.name.split(' ')[1];
+            document.getElementById('animalName').textContent = `你是个${animalNameOnly}哟～`;
+            
+            // 显示用户的脸
+            const userFaceCanvas = document.getElementById('userFace');
+            const userFaceCtx = userFaceCanvas.getContext('2d');
+            userFaceCanvas.width = 200;
+            userFaceCanvas.height = 200;
+            
+            const img = new Image();
+            img.onload = function() {
+                // 计算裁剪比例，使图片居中显示
+                const scale = Math.max(200 / img.width, 200 / img.height);
+                const x = (200 / 2) - (img.width / 2) * scale;
+                const y = (200 / 2) - (img.height / 2) * scale;
+                userFaceCtx.drawImage(img, x, y, img.width * scale, img.height * scale);
+            };
+            img.src = capturedImageData;
+            
+            // 显示动物照片
+            document.getElementById('animalPhoto').src = animal.image;
+            document.getElementById('animalLabel').textContent = animal.emoji + ' ' + animal.name.split(' ')[1];
+            
+            // 显示相似度和描述
+            document.getElementById('similarity').textContent = `🎯 相似度：${similarity}%`;
+            document.getElementById('animalDescription').textContent = animal.description;
+        }
+
+        // 重新测试
+        retryBtn.addEventListener('click', function() {
+            document.getElementById('result').style.display = 'none';
+            captureBtn.style.display = 'inline-block';
+        });
+    </script>
+</body>
+</html>
